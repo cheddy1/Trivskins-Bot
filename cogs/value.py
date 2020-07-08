@@ -2,8 +2,8 @@ import discord
 import requests
 from discord.ext import commands
 
-steamapi = '' #steam api
-key = '' CSGO backpack api
+steamapi = ''
+key = ''
 class Value(commands.Cog, name="Inventory Value Commands"):
   def __init__(self, bot):
         self.bot = bot
