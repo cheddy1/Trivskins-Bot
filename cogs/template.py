@@ -4,7 +4,7 @@ import re
 tradelogging = 
 tradelow = 
 tradehigh = 
-tradeknife = 
+tradeknife =  
 tradetemplate = ''
 
 class Template(commands.Cog, name="Template Follower"):
