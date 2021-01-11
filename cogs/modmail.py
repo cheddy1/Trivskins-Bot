@@ -26,10 +26,14 @@ class Modmail(commands.Cog, name="Modmail Function"):
       modmailloggingchannel =  guild.get_channel(modmaillogging)
       channel = await ctx.author.create_dm()
       author = str(ctx.author)
+      global closereason
+
       def check(reaction, user):
           return user.id != self.bot.user.id
+  
       def checkUser(reaction, user):
           return user.id != self.bot.user.id and user.id == ctx.author.id
+
       async def ban():
           await channel.send("Thanks for the report, "+ctx.author.mention+', the user you reported was banned, and the ticket has been closed. If you would like open a new one, just send me !dm')
           desc = "**"+reason+"**"
@@ -47,6 +51,7 @@ class Modmail(commands.Cog, name="Modmail Function"):
           embed.add_field(name="Moderator", value=moderator, inline=True)
           await modmailloggingchannel.send(embed=embed)
           await reportchannel.delete()
+
       async def closeReportTicket():
           end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket.'
           embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
@@ -65,15 +70,24 @@ class Modmail(commands.Cog, name="Modmail Function"):
           embed.add_field(name="Moderator", value=moderator, inline=True)
           await modmailloggingchannel.send(embed=embed)
           await reportchannel.delete()
-      async def alertUserTicketClose():
-          yourmessage = specialmessage.content
-          reasonclosed = closereason.content
-          embed = discord.Embed(title="Your Ticket Was Closed", color=0Xc8ff3d)
-          content = "Thanks for contacting the staff team. \nIf you need to open another ticket, please send me !dm"
-          embed.add_field(name="Your Message", value=yourmessage, inline=False)
-          embed.add_field(name="Reason Closed", value=reasonclosed, inline=False)
-          embed.add_field(name="Open Another Ticket", value=content, inline=False)
-          await channel.send(embed=embed)
+
+      async def closeSupportTicket():
+          end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket.'
+          embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
+          await supportchannel.send(embed=embed)
+          closereason = await self.bot.wait_for('message',check=lambda message: message.channel == supportchannel and message.author.id != self.bot.user.id)
+          closereasoncontent = closereason.content
+          reporter = ctx.author.mention+'\n'+str(ctx.author.id)
+          moderator = '<@'+str(user.id)+'>'
+          embed = discord.Embed(title="Support/Feedback Ticket Closed",color=0Xe257fa)
+          content = specialmessage.content
+          embed.add_field(name="Reason Closed", value=closereasoncontent, inline=False)
+          embed.add_field(name="User's Message", value=content, inline=False)
+          embed.add_field(name="User", value=reporter, inline=True)
+          embed.add_field(name="Moderator", value=moderator, inline=True)
+          await modmailloggingchannel.send(embed=embed)
+          await supportchannel.delete()
+          
       desc = "Hey, what can I help you with?\n\n:one:: Report Another User\n:two:: Discord Support/Feedback\n:three:: Other"
       embed = discord.Embed(title="Open a Ticket", description=desc, color=0X57faea)
       embed.set_footer(text="This will timeout after 30 seconds of no response")
@@ -86,6 +100,7 @@ class Modmail(commands.Cog, name="Modmail Function"):
       except asyncio.TimeoutError:
           await channel.send("Timed out! Please start over with !dm")
           return
+          
       await opennewmodmail.remove_reaction('1\N{variation selector-16}\N{combining enclosing keycap}',self.bot.user)
       await opennewmodmail.remove_reaction('2\N{variation selector-16}\N{combining enclosing keycap}',self.bot.user)
       await opennewmodmail.remove_reaction('3\N{variation selector-16}\N{combining enclosing keycap}',self.bot.user)
@@ -220,6 +235,7 @@ class Modmail(commands.Cog, name="Modmail Function"):
           await reportdone.add_reaction('\U0001f4e2')
           await reportdone.add_reaction('\U0000274c')
           modchoice, user = await self.bot.wait_for('reaction_add',check=check)
+          
           if str(modchoice.emoji) == '\U0001f4e2':
             end = user.mention+', please message '+ctx.author.mention+' ASAP. When you are done, please close this ticket.'
             reporter = ':x:: close this ticket.'
@@ -228,38 +244,12 @@ class Modmail(commands.Cog, name="Modmail Function"):
             reportdone = await supportchannel.send(embed=embed)
             await reportdone.add_reaction('\U0000274c')
             modchoice2, user = await self.bot.wait_for('reaction_add',check=check)
+            
             if str(modchoice2.emoji) == '\U0000274c':
-                end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket.'
-                embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
-                await supportchannel.send(embed=embed)
-                closereason = await self.bot.wait_for('message',check=lambda message: message.channel == supportchannel and message.author.id != self.bot.user.id)
-                closereasoncontent = closereason.content
-                reporter = ctx.author.mention+'\n'+str(ctx.author.id)
-                moderator = '<@'+str(user.id)+'>'
-                embed = discord.Embed(title="Support/Feedback Ticket Closed",color=0Xe257fa)
-                content = specialmessage.content
-                embed.add_field(name="Reason Closed", value=closereasoncontent, inline=False)
-                embed.add_field(name="User's Message", value=content, inline=False)
-                embed.add_field(name="User", value=reporter, inline=True)
-                embed.add_field(name="Moderator", value=moderator, inline=True)
-                await modmailloggingchannel.send(embed=embed)
-                await supportchannel.delete()
+                await closeSupportTicket()
           if str(modchoice.emoji) == '\U0000274c':
-              end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket.'
-              embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
-              await supportchannel.send(embed=embed)
-              closereason = await self.bot.wait_for('message',check=lambda message: message.channel == supportchannel and message.author.id != self.bot.user.id)
-              reporter = ctx.author.mention+'\n'+str(ctx.author.id)
-              moderator = '<@'+str(user.id)+'>'
-              embed = discord.Embed(title="Support/Feedback Ticket Closed",color=0Xe257fa)
-              content = specialmessage.content
-              closereasoncontent = closereason.content
-              embed.add_field(name="Reason Closed", value=closereasoncontent, inline=False)
-              embed.add_field(name="User's Message", value=content, inline=False)
-              embed.add_field(name="User", value=reporter, inline=True)
-              embed.add_field(name="Moderator", value=moderator, inline=True)
-              await modmailloggingchannel.send(embed=embed)
-              await supportchannel.delete()
+              await closeSupportTicket()
+      
       if str(userchoice.emoji) == '3\N{variation selector-16}\N{combining enclosing keycap}': 
           await channel.send("Okay, I don't exactly know what you want. Being as descriptive as possible, and in only one message, please type whatever you need sent to the staff team. \nIf you need to send pictures, please do not send them to me. Say you have pictures in your message, and we will request them.")
           try:
@@ -281,6 +271,7 @@ class Modmail(commands.Cog, name="Modmail Function"):
           await reportdone.add_reaction('\U0001f4e2')
           await reportdone.add_reaction('\U0000274c')
           modchoice, user = await self.bot.wait_for('reaction_add',check=check)
+          
           if str(modchoice.emoji) == '\U0001f4e2':
             end = user.mention+', please message '+ctx.author.mention+' ASAP. When you are done, please close this ticket.'
             reporter = ':x:: close this ticket.'
@@ -289,47 +280,18 @@ class Modmail(commands.Cog, name="Modmail Function"):
             reportdone = await supportchannel.send(embed=embed)
             await reportdone.add_reaction('\U0000274c')
             modchoice2, user = await self.bot.wait_for('reaction_add',check=check)
+            
             if str(modchoice2.emoji) == '\U0000274c':
-                end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket.'
-                embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
-                await supportchannel.send(embed=embed)
-                closereason = await self.bot.wait_for('message',check=lambda message: message.channel == supportchannel and message.author.id != self.bot.user.id)
-                closereasoncontent = closereason.content
-                reporter = ctx.author.mention+'\nDiscord ID: '+str(ctx.author.id)
-                moderator = '<@'+str(user.id)+'>'
-                embed = discord.Embed(title="Other Ticket Closed", color=0X1300a6)
-                content = specialmessage.content
-                embed.add_field(name="Reason Closed", value=closereasoncontent, inline=False)
-                embed.add_field(name="User's Message", value=content, inline=False)
-                embed.add_field(name="User", value=reporter, inline=True)
-                embed.add_field(name="Moderator", value=moderator, inline=True)
-                await modmailloggingchannel.send(embed=embed)
-                await supportchannel.delete()
+                await closeSupportTicket()
+          
           if str(modchoice.emoji) == '\U0000274c':
-              end = user.mention+', please type the reason why you are closing the ticket. For example, \"No action is needed\" or \"Issue resolved\" and I\'ll close the ticket. This message will be sent to the user who opened the ticket.'
-              embed = discord.Embed(title="Closing Ticket", description=end, color=0Xed9632)
-              await supportchannel.send(embed=embed)
-              closereason = await self.bot.wait_for('message',check=lambda message: message.channel == supportchannel and message.author.id != self.bot.user.id)
-              closereasoncontent = closereason.content
-              reporter = ctx.author.mention+'\n'+str(ctx.author.id)
-              moderator = '<@'+str(user.id)+'>'
-              embed = discord.Embed(title="Other Ticket Closed", color=0X1300a6)
-              content = specialmessage.content
-              embed.add_field(name="Reason Closed", value=closereasoncontent, inline=False)
-              embed.add_field(name="User's Message", value=content, inline=False)
-              embed.add_field(name="User", value=reporter, inline=True)
-              embed.add_field(name="Moderator", value=moderator, inline=True)
-              await modmailloggingchannel.send(embed=embed)
-              await alertUserTicketClose()
-              await supportchannel.delete()
+              await closeSupportTicket()
 
   @commands.command(name='end')
   @commands.has_permissions(administrator=True)
   async def deleteReport(self, ctx):
     if ctx.channel.category and ctx.channel.category.name == "Reports" and ctx.channel.id != modmaillogging:
         await ctx.channel.delete()
-
-
 
 def setup(bot):
     bot.add_cog(Modmail(bot))
