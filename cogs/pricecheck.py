@@ -1,7 +1,7 @@
-import discord
-import datetime
-import requests
+import discord  
+import aiohttp
 from discord.ext import commands
+import re
 
 key = '' #csgo backpack api key
 
@@ -26,43 +26,39 @@ class priceCheck(commands.Cog, name="Price check command"):
           global steamlink
           global bitskins
           global sold
-          resp = requests.get('https://csgobackpack.net/api/GetItemPrice/?currency=USD&id='+skinlink+'&time=300&icon=1&key='+key)
+          global lowest
+          global highest
+          async with aiohttp.ClientSession() as session:
+              async with session.get('https://csgobackpack.net/api/GetItemPrice/?currency=USD&id='+skinlink+'&time=300&icon=1&key='+key) as resp:
+                  resp = await resp.text()
           steamlinktest=skinlink.replace(')','%29')
           steamlink1='https://steamcommunity.com/market/listings/730/'+steamlinktest
           steamlink = steamlink1.replace(' ','%20')
           bitskins1='https://bitskins.com/?app_id=730&market_hash_name='+steamlinktest
           bitskins = bitskins1.replace(' ','%20')
-          data1 = resp.text.replace(',',' ')
+          data1 = resp.replace(',',' ')
           rawdata = data1.split()
-          averagepriceraw=rawdata[1]
-          iconraw = rawdata[9]
-          icon1 = iconraw.replace('\"','')
-          icon2 = icon1.replace('icon','')
-          icon3 = icon2.replace('\\','')
-          icon = icon3[1:]
-          soldraw= rawdata[3]
-          sold = soldraw.replace('\"','')
-          sold = sold.replace('amount_sold','')
-          sold = sold.replace('\\','')
-          sold = sold.replace(':','')
-          pricestring = "average_price"
-          price = averagepriceraw.replace('\"','')
-          price = price.replace(':','')
-          price = price.replace(pricestring,'')
-          await displayPrice1()
+          lowest = rawdata[5].replace('\"','').replace('lowest_price:','')
+          highest = rawdata[6].replace('\"','').replace('highest_price:','')
+          icon = rawdata[9].replace('\"','').replace('icon:','').replace('\\','')
+          sold= rawdata[3].replace('\"','').replace('amount_sold:','')
+          price = rawdata[1] .replace('\"','').replace(':','').replace('average_price','')
+          await displayPrice()
     
-    async def displayPrice1():
+    async def displayPrice():
         #TODO: Replace link with steam page.
         global thumbnail
         global price
         global color
-        desc1='The average steam market price in the past 30 days for \n' +'**'+gunname+'** is: **$'+price+'**\n\nAmount sold on the steam market in the past 30 days: **'+sold+'**'
-        embed = discord.Embed(title="Price Check", description=desc1, url=icon,  color=color, timestamp = datetime.datetime.utcnow())
+        desc1='The average price for \n' +'**'+gunname+'** is: **$'+price+'**\n\nAmount sold: **'+sold+'**\nLowest price sold for: **$'+lowest+'**\nHighest price sold for: **$'+highest+'**'
+        #desc1='The average steam market price in the past 30 days for \n' +'**'+gunname+'** is: **$'+price+'**\n\nAmount sold on the steam market in the past 30 days: **'+sold+'**\nLowest price on the steam market in the past 30 days: **$'+lowest+'**\nHighest price on the steam market in the past 30 days: **$'+highest+'**'timestamp = datetime.datetime.utcnow()
+        embed = discord.Embed(title="Price Check", description=desc1, url=icon,  color=color)
         links = "[Steam Market]("+steamlink+")\n[Bitskins]("+bitskins+")\n_ _"
         embed.add_field(name="Links", value=links, inline=False)
         embed.set_thumbnail(url=icon)
-        embed.set_footer(text="Price Checked:", icon_url="https://cdn.discordapp.com/avatars/217440011451105280/7752b9953c981fe9b072dd0949e956f4.png?size=128")
+        embed.set_footer(text="All data is from the steam marketplace from the past 30 days", icon_url="https://cdn.discordapp.com/avatars/217440011451105280/7752b9953c981fe9b072dd0949e956f4.png?size=128")
         await ctx.send(embed=embed)
+
     remove = ctx.message.content
     remove1 = remove[0:4]
     pc1 = remove.replace(remove1, '')
@@ -71,10 +67,8 @@ class priceCheck(commands.Cog, name="Price check command"):
     
     else:
         if "(" in pc1 or ")":
-            pc = pc1.replace('(', '')
-            pc = pc.replace(')', '')
-        pc = ' '.join([w.title() if w.islower() else w for w in pc.split()])  
-        pc = pc.split()
+            pc = pc1.replace('(', '').replace(')', '')
+        pc = (' '.join([w.title() if w.islower() else w for w in pc.split()])).split()
         pclength = len(pc)
         pc[pclength-1] = pc[pclength-1]+')'
         pc[pclength-2] = '('+pc[pclength-2]
@@ -89,14 +83,27 @@ class priceCheck(commands.Cog, name="Price check command"):
             await ctx.send(embed=embed)
         else:
             try:
-              pclist = pc.split()
-              if "Ak-47" in pclist:
-                  akindex = pclist.index("Ak-47")
-                  pclist[akindex] = "AK-47"
-              if "St" in pclist[0] or "st" in pclist[0] or "sT" in pclist[0]:
-                  pclist[0] = "ST"
+              pclist = re.sub('\\bst\\b', 'ST', pc, flags=re.I)
+              pclist = re.sub('mp9\\b', 'MP9', pclist, flags=re.I)
+              pclist = re.sub('usps\\b', 'USPS', pclist, flags=re.I)
+              pclist = re.sub('usp-s\\b', 'USP-S', pclist, flags=re.I)
+              pclist = re.sub('famas\\b', 'FAMAS', pclist, flags=re.I)
+              pclist = re.sub('\\bsg\\b', 'SG', pclist, flags=re.I)
+              pclist = re.sub('m4a4\\b', 'M4A4', pclist, flags=re.I)
+              pclist = re.sub('m4a1s\\b', 'M4A1-S', pclist, flags=re.I)
+              pclist = re.sub('m4a1-s\\b', 'M4A1-S', pclist, flags=re.I)
+              pclist = re.sub('ak47\\b', 'AK-47', pclist, flags=re.I)
+              pclist = re.sub('ak-47\\b', 'AK-47', pclist, flags=re.I)
+              pclist = re.sub('five seven\\b', 'Five-SeveN', pclist, flags=re.I)
+              pclist = re.sub('five-seven\\b', 'Five-SeveN', pclist, flags=re.I)
+              pclist = re.sub('57\\b', 'Five-SeveN', pclist, flags=re.I)
+              pclist = re.sub('5-7\\b', 'Five-SeveN', pclist, flags=re.I)
+              pclist = re.sub('\\bar\\b', 'AR', pclist, flags=re.I)
+              pclist = re.sub('ump45\\b', 'AR', pclist, flags=re.I)
+              pclist = re.sub('ump-45\\b', 'AR', pclist, flags=re.I)
+              pclist = pclist.split()
               st = 'StatTrak™'
-              global skinlink
+              global skinlink 
               global color
               if pclist[0] == "Souvenir": #Souvenir skins.
                   color = yellow
@@ -124,7 +131,7 @@ class priceCheck(commands.Cog, name="Price check command"):
                       else:
                         skinlink = pclist[0]+two+pclist[1]+two+'|'+two+pclist[2]+two+pclist[3]+two+pclist[4]+two+pclist[5]+'-'+pclist[5]
                         await getprice()
-              elif pclist[0] == "Desert" or pclist[1] == "Desert" or pclist[0] == "Dual" or pclist[1] == "Dual" or pclist[0] == "R8" or pclist[1] == "R8" or pclist[0] == "SG" or pclist[1] == "SG" or pclist[0] == "SSG" or pclist[1] == "SSG":
+              elif pclist[0] == "Desert" or pclist[1] == "Desert" or pclist[0] == "Dual" or pclist[1] == "Dual" or pclist[0] == "R8" or pclist[1] == "R8" or pclist[0] == "SG" or pclist[1] == "SG" or pclist[0] == "SSG" or pclist[1] == "SSG" or pclist[0] == "Galil" or pclist[1] == "Galil":
                   if pclist[0] == "ST": #ST 2 word gun anmes
                         color = red
                         if len(pclist) == 6:
