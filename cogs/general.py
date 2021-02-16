@@ -7,9 +7,9 @@ class General(commands.Cog, name="General Commands"):
   def __init__(self, bot):
         self.bot = bot
         
-  @commands.command(name='invite')
-  async def invite(self, ctx): #Pulls up an invite link.
-      await ctx.message.channel.send("<https://cheddydev.com/discord>")
+  #@commands.command(name='invite')
+  #async def invite(self, ctx): #Pulls up an invite link.
+      #await ctx.message.channel.send("<https://cheddydev.com/discord>")
 
   @commands.command(name='report')
   async def report(self, ctx): #Helps a user report.
