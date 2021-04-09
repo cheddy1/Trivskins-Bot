@@ -14,6 +14,7 @@ intents.members = True
 
 startup_extensions = ['cogs.value','cogs.general','cogs.modmail','cogs.template','cogs.pricecheck','cogs.screenshot']
 
+# Load the cogs. If any fail... oh well?
 bot = commands.Bot(command_prefix ='!', intents=intents)
 bot.remove_command('help')
 if __name__ == '__main__':
@@ -22,10 +23,12 @@ if __name__ == '__main__':
             bot.load_extension(extension)
         except Exception as e:
             pass
+# Runs when the bot connects to discord
 @bot.event
-async def on_ready(): #Runs when the bot connects.
+async def on_ready(): 
     print("Ready")
     while True:
+        # Cycling status updates
         await bot.change_presence(activity=discord.Game(name='!help | v1.0.6',type=1))
         await asyncio.sleep(120)
         await bot.change_presence(activity=discord.Activity(name='!dm for support', type=3))
@@ -34,6 +37,9 @@ async def on_ready(): #Runs when the bot connects.
         #await client.change_presence(activity=discord.Streaming(name="FOLLOW MY TWITCH", url="https://twitch.tv/cheddyGG", type=1))
         #await asyncio.sleep(30)
 
+# Prior to the stable release of Discord.py 1.6, .pending was not a valid operation. However, Discord had released the feature that required the use of .pending,
+# so this was made with a prerelease version, so it might need to be updated with later versions of d.py
+# Once a member passes the rules check, give them roles and allow them into the server
 @bot.event
 async def on_member_update(before, after):
     if (before.pending) == True:
