@@ -4,9 +4,9 @@ import ast
 from discord.ext import commands
 
 # Steam API is required to get certain idetifiers from a users url
-steamapi = '876F8F0BCC5942F76AB49B8622D730A1'
+steamapi = ''
 # CSGO backpack api, 
-key = 'f85aae2295yh2xwg'
+key = ''
 
 class Value(commands.Cog, name="Inventory Value Commands"):
   def __init__(self, bot):
