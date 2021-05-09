@@ -14,7 +14,6 @@ intents.members = True
 
 startup_extensions = ['cogs.value','cogs.general','cogs.modmail','cogs.template','cogs.pricecheck','cogs.screenshot']
 
-# Load the cogs. If any fail... oh well?
 bot = commands.Bot(command_prefix ='!', intents=intents)
 bot.remove_command('help')
 if __name__ == '__main__':
@@ -22,24 +21,19 @@ if __name__ == '__main__':
         try:
             bot.load_extension(extension)
         except Exception as e:
-            pass
-# Runs when the bot connects to discord
+            print(e)
 @bot.event
-async def on_ready(): 
+async def on_ready(): #Runs when the bot connects.
     print("Ready")
     while True:
-        # Cycling status updates
-        await bot.change_presence(activity=discord.Game(name='!help | v1.0.6',type=1))
+        await bot.change_presence(activity=discord.Game(name='!help for commands',type=3))
         await asyncio.sleep(120)
-        await bot.change_presence(activity=discord.Activity(name='!dm for support', type=3))
-        await asyncio.sleep(60)
+        await bot.change_presence(activity=discord.Activity(name='!dm for modmail', type=3))
+        await asyncio.sleep(120)
         #await bot.change_presence(activity=discord.Activity(name='cheddydev.com', type=3))
         #await client.change_presence(activity=discord.Streaming(name="FOLLOW MY TWITCH", url="https://twitch.tv/cheddyGG", type=1))
         #await asyncio.sleep(30)
 
-# Prior to the stable release of Discord.py 1.6, .pending was not a valid operation. However, Discord had released the feature that required the use of .pending,
-# so this was made with a prerelease version, so it might need to be updated with later versions of d.py
-# Once a member passes the rules check, give them roles and allow them into the server
 @bot.event
 async def on_member_update(before, after):
     if (before.pending) == True:
@@ -66,4 +60,3 @@ async def on_member_update(before, after):
             memberCount = str(memberCount)+"th"
         await welcome.send("Welcome, "+after.mention+", to **Trivskins Trading**!\n*You are the **"+memberCount+"** member!*\n\n__Don't forget to check out:__\n<#"+infoid+"> to learn about the server and trading.\n<#"+rolesid+"> to get some roles.\n<#"+announceid+"> to see what's going on in the server currently.\n\nIf you have any qustions or comments, open a modmail by typing **!dm** anywhere in the server.\nWe hope you enjoy the server, and have fun trading!\n**\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_**")
 bot.run(token)
-
