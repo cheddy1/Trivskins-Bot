@@ -14,6 +14,7 @@ intents.members = True
 
 startup_extensions = ['cogs.value','cogs.general','cogs.modmail','cogs.template','cogs.pricecheck','cogs.screenshot']
 
+# When the bot connects, load the cogs
 bot = commands.Bot(command_prefix ='!', intents=intents)
 bot.remove_command('help')
 if __name__ == '__main__':
@@ -22,8 +23,10 @@ if __name__ == '__main__':
             bot.load_extension(extension)
         except Exception as e:
             print(e)
+
+# Controls the rotating status, changing every two minutes
 @bot.event
-async def on_ready(): #Runs when the bot connects.
+async def on_ready(): 
     print("Ready")
     while True:
         await bot.change_presence(activity=discord.Game(name='!help for commands',type=3))
@@ -34,6 +37,11 @@ async def on_ready(): #Runs when the bot connects.
         #await client.change_presence(activity=discord.Streaming(name="FOLLOW MY TWITCH", url="https://twitch.tv/cheddyGG", type=1))
         #await asyncio.sleep(30)
 
+# Prior to the stable release of Discord.py 1.6, .pending was not a valid operation. However, Discord had released the feature that required the use of .pending,
+# so this was made with a prerelease version, so it might need to be updated with later versions of d.py
+# Once a member passes the rules check, give them roles and allow them into the server
+# Runs when a user joins the server
+# Also prints a welcome message in the welcome channel
 @bot.event
 async def on_member_update(before, after):
     if (before.pending) == True:
@@ -59,4 +67,5 @@ async def on_member_update(before, after):
         else:
             memberCount = str(memberCount)+"th"
         await welcome.send("Welcome, "+after.mention+", to **Trivskins Trading**!\n*You are the **"+memberCount+"** member!*\n\n__Don't forget to check out:__\n<#"+infoid+"> to learn about the server and trading.\n<#"+rolesid+"> to get some roles.\n<#"+announceid+"> to see what's going on in the server currently.\n\nIf you have any qustions or comments, open a modmail by typing **!dm** anywhere in the server.\nWe hope you enjoy the server, and have fun trading!\n**\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_**")
+
 bot.run(token)
