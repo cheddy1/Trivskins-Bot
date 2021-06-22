@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 dev_token = ''
-prod_token = '
+prod_token = ''
 intents = discord.Intents.all()
 intents.members = True
 
