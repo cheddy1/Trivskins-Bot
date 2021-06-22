@@ -1,50 +1,61 @@
-# This cog provides some general usage commands. At some point, I'd like
-# to add a functionality that allows to create more commands from inside
-# the server itself and stores them.
-
 import discord
+import asyncio
 from discord.ext import commands
+welcomechannel = 556874149121884160
+guildid = 427956256175685634
+rolesid = '557299561979183114'
+infoid = '613715419026423814'
+announceid = '556875713727168533'
+intents = discord.Intents.all()
+intents.members = True
 
-# Class declaration 
-class General(commands.Cog, name="General Commands"):
-  def __init__(self, bot):
+
+class General(commands.Cog, name="Ad Template Checker"):
+    def __init__(self, bot):
         self.bot = bot
-        
-  # Pulls up an invite link
-  @commands.command(name='invite')
-  async def invite(self, ctx): 
-      await ctx.message.channel.send("https://discord.gg/NfpThYWgRt")
 
-  #Alerts a user about modmail
-  @commands.command(name='modmail')
-  async def modmail(self, ctx): 
-      await ctx.message.delete()
-      mention = ctx.message.content.replace('!modmail','')
-      print(mention)
-      await ctx.message.channel.send('Need to report someone, provide feedback, or get support, '+mention+'? Open a modmail with **!dm**')
+    # Controls the rotating status, changing every two minutes
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Ready")
+        while True:
+            await self.bot.change_presence(activity=discord.Game(name='!help for commands', type=3))
+            await asyncio.sleep(120)
+            await self.bot.change_presence(activity=discord.Activity(name='!dm for modmail', type=3))
+            await asyncio.sleep(120)
+            # await bot.change_presence(activity=discord.Activity(name='cheddydev.com', type=3))
+            # await client.change_presence(activity=discord.Streaming(name="FOLLOW MY TWITCH", url="https://twitch.tv/cheddyGG", type=1))
+            # await asyncio.sleep(30)
 
-  # General help command
-  @commands.command(name='help')
-  async def help(self, ctx): 
-      desc = 'Thanks for using the Trivskins Trading Bot, coded and created by cheddy#7744. Please contact him if you have any issues. '
-      features1 = 'This bot has many features, please take a look at the commands available to you below.'
-      commands1 = '**!dm** *Report someone/get server support.*\n**!value "Steam Profile Link"** *Gives the CS:GO inventory value of a steam profile.* \n**!pc "Weapon" "Skin" "Wear"** *Price check a skin.*\n**!invite** *Get the Discord invite link.* \n**!support** *Help support the hosting of this bot.*\n**!help** *Pull up this help menu.*'
-      embed = discord.Embed(title="Trivskins Trading Bot Help", description=desc, url='https://cheddydev.com/', color=0X2C3675)
-      embed.add_field(name="Features", value=features1, inline=False)
-      embed.add_field(name="Commands", value=commands1, inline=False) 
-      await ctx.message.channel.send(embed=embed)
+    # Once a member passes the rules check, give them roles and allow them into the server
+    # Runs when a user joins the server
+    # Also prints a welcome message in the welcome channel
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if before.pending:
+            if not after.pending:
+                role = discord.utils.get(after.guild.roles, name="Trader")
+                role2 = discord.utils.get(after.guild.roles, name="↥─────《 Server Rank 》────↥")
+                role3 = discord.utils.get(after.guild.roles, name="↥────《 Inventory Value 》───↥")
+                role4 = discord.utils.get(after.guild.roles, name="↥──────《 Self Role 》──────↥")
+                await after.add_roles(role)
+                await after.add_roles(role2)
+                await after.add_roles(role3)
+                await after.add_roles(role4)
+                guild = self.bot.get_guild(guildid)
+                welcome = guild.get_channel(welcomechannel)
+                memberCount = len([m for m in guild.members if not m.bot])
+                lastCount = memberCount % 100
+                if lastCount == 1:
+                    memberCount = str(memberCount)+"st"
+                elif lastCount == 2:
+                    memberCount = str(memberCount)+"nd"
+                elif lastCount == 3:
+                    memberCount = str(memberCount)+"rd"
+                else:
+                    memberCount = str(memberCount)+"th"
+                await welcome.send("Welcome, "+after.mention+", to **Trivskins Trading**!\n*You are the **"+memberCount+"** member!*\n\n__Don't forget to check out:__\n<#"+infoid+"> to learn about the server and trading.\n<#"+rolesid+"> to get some roles.\n<#"+announceid+"> to see what's going on in the server currently.\n\nIf you have any qustions or comments, open a modmail by typing **!dm** anywhere in the server.\nWe hope you enjoy the server, and have fun trading!\n**\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_**")
 
-  # Recognizes supporters. At some point, would like to add an ability to add
-  # supporters from the server.
-  @commands.command(name='support')
-  async def support(self, ctx): 
-      desc = 'Coding this bot and making the website is free, unfortunatly hosting them is not. Every **$10** donated keeps the bot and the website live for another month.'
-      supporters = 'Thank you to anyone who supports the bot, the website, and this server. Donating any amount will get your name below, a royal purple chat role, and future supporter only betas and bot features! \n\n**Argarest**\n**ÅRRØ**'
-      paypal = 'Please visit **https://cheddydev.com/support/** to see all the different ways to support the server.'
-      embed = discord.Embed(title="Support!", description=desc, url='https://www.paypal.me/cheddy', color=0Xac27fd)
-      embed.add_field(name="Ways to Support", value=paypal, inline=False)
-      embed.add_field(name="Supporters", value=supporters, inline=False)
-      await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(General(bot))
