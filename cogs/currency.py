@@ -28,7 +28,6 @@ class Currency(commands.Cog, name="Currency"):
         self.bot = bot
         self.connection = sqlite3.connect("Trivskins.db")
         self.c = self.connection.cursor()
-        self.c.execute('''DROP TABLE users''')
         self.c.execute('''CREATE TABLE IF NOT EXISTS users (id integer PRIMARY KEY, name text NOT NULL, xp integer NOT NULL, xp_time integer NOT NULL)''')
 
     @commands.Cog.listener()
