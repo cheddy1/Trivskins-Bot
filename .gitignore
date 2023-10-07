@@ -1,4 +1,4 @@
-secrets.py
+env_secrets.py
 venv
 cogs\__pycache__
 __pycache__
