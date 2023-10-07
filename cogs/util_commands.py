@@ -43,14 +43,21 @@ class Util_Commands(commands.Cog, name="General Commands"):
         )
 
     # General help command
-    @app_commands.command(description="Learn about the bot!")
+    @app_commands.command(description="Load this help menu.")
     async def help(self, interaction: discord.Interaction):
-        desc = "Bot commands help page coming soon!"
+        cmds = commands.Cog.get_app_commands(self)
+        command_list = ""
+        for command in cmds:
+            description = command.description.partition("\n")[0]
+            command_list += f"</{command.name}:{command.id}> - *{description}*\n"
+        desc = "Have a more specific question? Reach out to the staff team at any time."
+        general = command_list
         embed = discord.Embed(
             title="Trivskins Trading Bot Help",
             description=desc,
             color=0x2C3675,
         )
+        embed.add_field(name="General Commands:", value=general, inline=False)
         embed.set_footer(text=footer_msg)
         await interaction.response.send_message(embed=embed)
 

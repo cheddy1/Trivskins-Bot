@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands
-from env_secrets import prod_secret
+from env_secrets import get_token
 from datetime import datetime
 
 dev_token = ""
@@ -22,14 +22,19 @@ async def main():
                 await bot.load_extension(extension)
             except Exception as e:
                 print(e)
-        await bot.start(prod_secret)
+        await bot.start(get_token())
+        print(f"bot logged as {bot.user}")
 
 
-@bot.event
-async def on_ready():
-    sync = await bot.tree.sync()
-    print(f"bot logged as {bot.user}")
-    print(f"synced {len(sync)} commands")
+@bot.command()
+async def sync(ctx):
+    if ctx.author.id == 217440011451105280:
+        cmds = await bot.tree.sync()
+        for cmd in cmds:
+            bot.tree._global_commands[cmd.name].id = cmd.id
+        await ctx.send("Command tree synced.")
+    else:
+        await ctx.send("You must be the owner to use this command!")
 
 
 # async def main():
