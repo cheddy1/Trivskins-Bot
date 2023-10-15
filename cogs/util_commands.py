@@ -5,12 +5,12 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from main import footer_msg
+from helpers import footer_msg
 
 
-class Util_Commands(commands.Cog, name="General Commands"):
+class Util_Commands(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
 
     # Pulls up an invite link
     @app_commands.command(description="Get an invite link!")
@@ -79,5 +79,5 @@ class Util_Commands(commands.Cog, name="General Commands"):
         await interaction.response.send_message(embed=embed)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Util_Commands(bot))

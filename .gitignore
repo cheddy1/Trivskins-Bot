@@ -2,3 +2,6 @@ env_secrets.py
 venv
 cogs\__pycache__
 __pycache__
+settings.json
+pyrightconfig.json
+discord.log

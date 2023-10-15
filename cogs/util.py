@@ -1,19 +1,17 @@
 import discord
-import asyncio
 from discord.ext import commands
 
-welcomechannel = 556874149121884160
-guildid = 427956256175685634
-rolesid = "557299561979183114"
-infoid = "613715419026423814"
-announceid = "556875713727168533"
-intents = discord.Intents.all()
-intents.members = True
+from env_secrets import get_guild_id
+
+welcome_channel = "👀︱welcome"
+roles_channel = "📌︱roles"
+info_channel = "💬︱info"
+announcements_channel = "📢︱announcements"
 
 
 class Util(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
 
     # Controls the rotating status, changing every two minutes
     @commands.Cog.listener()
@@ -38,31 +36,26 @@ class Util(commands.Cog):
     # Once a member passes the rules check, give them roles and allow them into the server
     # Runs when a user joins the server
     # Also prints a welcome message in the welcome channel
-    # @commands.Cog.listener()
-    # async def on_member_update(self, before, after):
-    #     if before.pending:
-    #         if not after.pending:
-    #             role = discord.utils.get(after.guild.roles, name="Trader")
-    #             role2 = discord.utils.get(after.guild.roles, name="↥─────《 Server Rank 》────↥")
-    #             role3 = discord.utils.get(after.guild.roles, name="↥────《 Inventory Value 》───↥")
-    #             role4 = discord.utils.get(after.guild.roles, name="↥──────《 Self Role 》──────↥")
-    #             await after.add_roles(role)
-    #             await after.add_roles(role2)
-    #             await after.add_roles(role3)
-    #             await after.add_roles(role4)
-    #             guild = self.bot.get_guild(guildid)
-    #             welcome = guild.get_channel(welcomechannel)
-    #             memberCount = len([m for m in guild.members if not m.bot])
-    #             lastCount = memberCount % 100
-    #             if lastCount == 1:
-    #                 memberCount = str(memberCount)+"st"
-    #             elif lastCount == 2:
-    #                 memberCount = str(memberCount)+"nd"
-    #             elif lastCount == 3:
-    #                 memberCount = str(memberCount)+"rd"
-    #             else:
-    #                 memberCount = str(memberCount)+"th"
-    #             await welcome.send("Welcome, "+after.mention+", to **Trivskins Trading**!\n*You are the **"+memberCount+"** member!*\n\n__Don't forget to check out:__\n<#"+infoid+"> to learn about the server and trading.\n<#"+rolesid+"> to get some roles.\n<#"+announceid+"> to see what's going on in the server currently.\n\nIf you have any qustions or comments, open a modmail by typing **!dm** anywhere in the server.\nWe hope you enjoy the server, and have fun trading!\n**\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_**")
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        guild = self.bot.get_guild(get_guild_id())
+        if guild is not None:
+            member_count = guild.member_count
+            if member_count is not None:
+                member_count_fmt = f"{member_count}" + (
+                    {1: "st", 2: "nd", 3: "rd"}.get(member_count % 10, "th")
+                    if member_count not in (11, 12, 13)
+                    else "th"
+                )
+                welcome = discord.utils.get(guild.text_channels, name=welcome_channel)
+                roles = discord.utils.get(guild.text_channels, name=roles_channel)
+                announcements = discord.utils.get(guild.text_channels, name=announcements_channel)
+                info = discord.utils.get(guild.text_channels, name=info_channel)
+                channel_list = [roles, announcements, info, welcome]
+                if all(channel is not None for channel in channel_list):
+                    await welcome.send(
+                        f"Welcome, {member.mention}, to **Trivskins Trading**!\n*You are the **{member_count_fmt}** member!*\n\n__Don't forget to check out:__\n<#{info.id}> to learn about the server and trading.\n<#{roles.id}> to get some roles.\n<#{announcements.id}> to see what's going on in the server currently.\n\nWe hope you enjoy the server, and have fun trading!\n**\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_**"
+                    )
 
 
 async def setup(bot):

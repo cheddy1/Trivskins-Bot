@@ -1,29 +1,24 @@
+import logging
 import discord
 import asyncio
 from discord.ext import commands
-from env_secrets import get_token
-from datetime import datetime
+from env_secrets import get_environment_info, get_guild_id
 
-dev_token = ""
-footer_msg = f"Trivskins Bot v3.0 | Last updated: {datetime.now().strftime('%x at %X')}"
+env_info = get_environment_info()
 intents = discord.Intents.all()
 intents.members = True
 
-startup_extensions = ["cogs.util_commands", "cogs.util"]
+startup_extensions = ["cogs.util_commands", "cogs.util", "cogs.template"]
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 bot.remove_command("help")
+handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
+discord.utils.setup_logging(handler=handler, level=env_info["logging_level"])
 
 
-async def main():
-    async with bot:
-        for extension in startup_extensions:
-            try:
-                await bot.load_extension(extension)
-            except Exception as e:
-                print(e)
-        await bot.start(get_token())
-        print(f"bot logged as {bot.user}")
+@bot.event
+async def on_ready():
+    print(f"bot logged as {bot.user}")
 
 
 @bot.command()
@@ -44,5 +39,19 @@ async def sync(ctx):
 #                 await bot.load_extension(f"cmds.{cog[:-3]}")
 #         await bot.start(prod_secret)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+
+async def load_extensions():
+    for extension in startup_extensions:
+        try:
+            await bot.load_extension(extension)
+        except Exception as e:
+            print(e)
+
+
+async def start_up():
+    async with bot:
+        await load_extensions()
+        await bot.start(token=env_info["token"])
+
+
+asyncio.run(start_up())
